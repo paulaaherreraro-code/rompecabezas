@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Rompecabezas de Palabras</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f4f9;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .letters {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .letter {
+      background: #fff;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 5px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: grab;
+      user-select: none;
+    }
+    .definition {
+      display: none;
+      background: #dff0d8;
+      border: 2px solid #4cae4c;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 10px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #333;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Rompecabezas de Palabras</h1>
+  <p>Arrastra las letras para formar la palabra correcta</p>
+
+  <div id="letters" class="letters"></div>
+
+  <div id="definition" class="definition"></div>
+
+  <button onclick="nextWord()">Siguiente palabra</button>
+
+  <script>
+    // Palabras y significados
+    const words = [
+      { word: "RESPETO", definition: "Reconocer y valorar a las demás personas, sus ideas y sus derechos." },
+      { word: "EMPATIA", definition: "Capacidad de ponerse en el lugar de otra persona y comprender sus sentimientos." },
+      { word: "DIVERSIDAD", definition: "Reconocimiento y respeto por las diferencias entre personas y culturas." }
+    ];
+
+    let currentWordIndex = 0;
+    let selectedWord = "";
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function loadWord() {
+      const lettersDiv = document.getElementById("letters");
+      const definitionDiv = document.getElementById("definition");
+      lettersDiv.innerHTML = "";
+      definitionDiv.style.display = "none";
+
+      const wordObj = words[currentWordIndex];
+      selectedWord = wordObj.word;
+
+      const shuffled = shuffle(selectedWord.split(""));
+      shuffled.forEach(letter => {
+        const span = document.createElement("div");
+        span.className = "letter";
+        span.textContent = letter;
+        span.draggable = true;
+
+        span.addEventListener("dragstart", dragStart);
+        span.addEventListener("dragover", dragOver);
+        span.addEventListener("drop", drop);
+
+        lettersDiv.appendChild(span);
+      });
+    }
+
+    let dragged = null;
+
+    function dragStart(event) {
+      dragged = event.target;
+    }
+
+    function dragOver(event) {
+      event.preventDefault();
+    }
+
+    function drop(event) {
+      event.preventDefault();
+      if (event.target.className === "letter") {
+        const parent = event.target.parentNode;
+        if (dragged && dragged !== event.target) {
+          let draggedIndex = Array.from(parent.children).indexOf(dragged);
+          let targetIndex = Array.from(parent.children).indexOf(event.target);
+
+          if (draggedIndex < targetIndex) {
+            parent.insertBefore(dragged, event.target.nextSibling);
+          } else {
+            parent.insertBefore(dragged, event.target);
+          }
+        }
+      }
+      checkWord();
+    }
+
+    function checkWord() {
+      const letters = document.querySelectorAll(".letter");
+      let formedWord = "";
+      letters.forEach(l => formedWord += l.textContent);
+
+      if (formedWord === selectedWord) {
+        const definitionDiv = document.getElementById("definition");
+        definitionDiv.innerHTML = `<h2>${selectedWord}</h2><p>${words[currentWordIndex].definition}</p>`;
+        definitionDiv.style.display = "block";
+      }
+    }
+
+    function nextWord() {
+      currentWordIndex = (currentWordIndex + 1) % words.length;
+      loadWord();
+    }
+
+    // Inicializa con la primera palabra
+    loadWord();
+  </script>
+
+</body>
+</html>
